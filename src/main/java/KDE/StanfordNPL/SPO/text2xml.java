@@ -1,27 +1,37 @@
 package KDE.StanfordNPL.SPO;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation;
-import edu.stanford.nlp.util.CoreMap;
+
 
 public class text2xml {
 	private static String readFile(String path) throws IOException{
-		FileInputStream In = new FileInputStream(path);
 		String document = new String();
-		int size = In.available();
-		for(int i = 0; i < size; i++){
-			document += (char)In.read() ;
+		BufferedReader br = null;
+		try {
+			String sCurrentLine;
+			br = new BufferedReader(new FileReader(path));
+			while ((sCurrentLine = br.readLine()) != null) {
+				document += sCurrentLine;
+				//System.out.println(sCurrentLine);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (br != null)br.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
 		}
-		In.close();
 		return document;
 		
 	}
@@ -43,15 +53,18 @@ public class text2xml {
 		//System.out.println(readFile("/home/jeovach/java workspace/StanfordNPL.SPO/data/business_2016_sep_06_eurozone-consumer-spending-slows-but-exports-rise"));
 		String path = "/home/jeovach/java workspace/StanfordNPL.SPO/data";
 		String[] documents = readDir(path);
-		for(String document: documents){
-			Annotation annotation = new Annotation(document);
+		for(int i = 0; i < documents.length; i++){
+			Annotation annotation = new Annotation(documents[i]);
 			pipeline.annotate(annotation);
-			List<CoreMap> Sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
-			for(CoreMap Sentence : Sentences){
+			FileOutputStream os = new FileOutputStream(new File("./target/", paths[i]+".xml"));
+			pipeline.xmlPrint(annotation, os);
+			os.close();
+			/*List<CoreLabel> Sentences = annotation.get(CoreAnnotations.TokensAnnotation.class);
+			//for(CoreLabel Sentence : Sentences){
 				SemanticGraph DepenTree = Sentence.get(CollapsedCCProcessedDependenciesAnnotation.class);
 				System.out.println(DepenTree.toString(SemanticGraph.OutputFormat.XML));
-			}
-		}
+			//}
+*/		}
 		
 	}
 }
