@@ -56,7 +56,7 @@ public class text2xml {
 		for(int i = 0; i < documents.length; i++){
 			Annotation annotation = new Annotation(documents[i]);
 			pipeline.annotate(annotation);
-			FileOutputStream os = new FileOutputStream(new File("./xml/", paths[i]+".xml"));
+			FileOutputStream os = new FileOutputStream(new File("/home/jeovach/java workspace/StanfordNPL.SPO/xml", paths[i]+".xml"));
 			pipeline.xmlPrint(annotation, os);
 			os.close();
 			/*List<CoreLabel> Sentences = annotation.get(CoreAnnotations.TokensAnnotation.class);
