@@ -3,8 +3,6 @@ package KDE.StanfordNPL.SPO;
 import java.util.ArrayList;
 import java.util.List;
 
-import nu.xom.jaxen.function.StartsWithFunction;
-
 public class Sentence {
 	private int Id;
 	private List<Token> tokens = new ArrayList<Token>();
@@ -12,6 +10,13 @@ public class Sentence {
 	private Dependence Basic_dep = new Dependence("basic-Dependence");
 	private Dependence collap_dep = new Dependence("collapsed-Dependence");
 	private Dependence collap_processed_dep = new Dependence("collapsed-ccprocessed-Dependence");
+	private List<CoreFerence> corf_list = new ArrayList<>();
+	public List<CoreFerence> getCorf_list() {
+		return corf_list;
+	}
+	public void setCorf_list(List<CoreFerence> corf_list) {
+		this.corf_list = corf_list;
+	}
 	public List<Token> getTokens() {
 		return tokens;
 	}
@@ -19,7 +24,7 @@ public class Sentence {
 		return Id;
 	}
 	public void setId(int id) {
-		Id = id;
+		this.Id = id;
 	}
 	public void setTokens(List<Token> tokens) {
 		this.tokens = tokens;
@@ -31,7 +36,7 @@ public class Sentence {
 		return Basic_dep;
 	}
 	public void setBasic_dep(Dependence basic_dep) {
-		Basic_dep = basic_dep;
+		this.Basic_dep = basic_dep;
 	}
 	public Dependence getCollap_dep() {
 		return collap_dep;
@@ -59,12 +64,12 @@ public class Sentence {
 	public  Token getDependent(String governor, String typeDep){
 		if(governor == "ROOT"){
 			for(Dep tmpDep: this.Basic_dep.getDepList()){
-				if(tmpDep.getType().startsWith("root"))
+				if(tmpDep.getType().equals("root"))
 					return this.getTokenString(tmpDep.getIDword2());
 			}
 		}
 		for(Dep tmpDep: this.Basic_dep.getDepList()){
-			if(tmpDep.getType().startsWith(typeDep) && this.getTokenString(tmpDep.getIDword1()).getWord() == governor){
+			if(tmpDep.getType().equals(typeDep) && this.getTokenString(tmpDep.getIDword1()).getWord() == governor){
 				return this.getTokenString(tmpDep.getIDword2());
 			}
 		}

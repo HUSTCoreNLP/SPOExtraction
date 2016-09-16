@@ -57,7 +57,7 @@ public class ReadFileXML {
 				Element dependence = (Element) dependencies.item(j);
 				//lay ra cac dep cua dependence
 				//System.out.println(dependence.getAttribute("type"));
-				//if(dependence.getAttribute("type") == "basic-dependencies") System.out.println("adf");;
+				if(!dependence.getAttribute("type").equals("basic-dependencies")) continue;
 				NodeList deps = dependence.getElementsByTagName("dep");
 				//System.out.println(deps.getLength());
 				for (int k = 0; k < deps.getLength(); k++) {
@@ -94,50 +94,58 @@ public class ReadFileXML {
 			}
 			else if(tmp_dep_token.getPOS().startsWith("NN")) triples.add(new Triple(tmp_dep_token.getLemma(), null, null));
 			else{
-				Token S_token,P_token,O_token;
-				// P:
-				if(tmp.getDependent(tmp_dep_token.getWord(), "ccomp") != null) 
-					P_token = tmp.getDependent(tmp_dep_token.getWord(), "ccomp");
-				else if(tmp.getDependent(tmp_dep_token.getWord(), "xcomp") != null)
-					P_token = tmp.getDependent(tmp_dep_token.getWord(), "xcomp");
-				else
-					P_token = tmp_dep_token;
-				String P = P_token.getLemma();
-				//S:
-				if(tmp.getDependent(P_token.getWord(), "nsubj") != null && tmp.getDependent(P_token.getWord(), "nsubjpass") == null)
-					S_token = tmp.getDependent(P_token.getWord(), "nsubj");
-				else if(tmp.getDependent(P_token.getWord(), "nmod:agent") != null)
-					S_token = tmp.getDependent(P_token.getWord(), "nmod:agent");
-				else
-					S_token = tmp.getDependent(tmp_dep_token.getWord(), "nsubj");
-				String S;
-				if(S_token != null) {
-					S = S_token.getLemma();
-					if(tmp.getDependent(S_token.getWord(), "nmod") != null)
-						S = tmp.getDependent(S_token.getWord(), "nmod").getLemma() +" "+ S;
-					if(tmp.getDependent(S_token.getWord(), "nummod") != null)
-						S = tmp.getDependent(S_token.getWord(), "nummod").getLemma() +" "+ S;
+				for(Token tmp_tok: tmp.getTokens()){
+					if(tmp_tok.getPOS().startsWith("VB")){
+						if(tmp.getBasic_dep().isInDep(tmp_tok, "auxpass",2)) continue;
+						Token S_token,P_token,O_token;
+						// P:
+						P_token = tmp_tok;
+						String P = P_token.getWord();
+						if(tmp.getDependent(P, "neg") != null)
+							P = tmp.getDependent(P, "neg").getWord()+" " + P;
+						//S:
+						if(tmp.getDependent(P_token.getWord(), "nsubj") != null && tmp.getDependent(P_token.getWord(), "nsubjpass") == null)
+							S_token = tmp.getDependent(P_token.getWord(), "nsubj");
+						else if(tmp.getDependent(P_token.getWord(), "nmod:agent") != null)
+							S_token = tmp.getDependent(P_token.getWord(), "nmod:agent");
+						else
+							S_token = tmp.getDependent(tmp_dep_token.getWord(), "nsubj");
+						String S;
+						if(S_token != null) {
+							S = S_token.getWord();
+							if(tmp.getDependent(S_token.getWord(), "nmod") != null)
+								S = tmp.getDependent(S_token.getWord(), "nmod").getWord() +" "+ S;
+							if(tmp.getDependent(S_token.getWord(), "nummod") != null)
+								S = tmp.getDependent(S_token.getWord(), "nummod").getWord() +" "+ S;
+						}
+						else S = null;
+						//O:
+						if(tmp.getDependent(P_token.getWord(), "nsubjpass") != null)
+							O_token = tmp.getDependent(P_token.getWord(), "nsubjpass");
+						else if(tmp.getDependent(P_token.getWord(), "dobj") != null)
+							O_token = tmp.getDependent(P_token.getWord(), "dobj");
+						else
+							O_token = tmp.getDependent(P_token.getWord(), "iobj");
+						String O;
+						if(O_token != null) {
+							O = O_token.getWord();
+							if(tmp.getDependent(O_token.getWord(), "nmod") != null )
+								O = tmp.getDependent(O_token.getWord(), "nmod").getWord() +" "+ O;
+							if(tmp.getDependent(O_token.getWord(), "nummod") != null)
+								O = tmp.getDependent(O_token.getWord(), "nummod").getWord() + O;
+							if(tmp.getDependent(O_token.getWord(), "compound") != null){
+								Token n = tmp.getDependent(O_token.getWord(), "compound");
+								if(tmp.getDependent(n.getWord(), "conj:and") != null)
+									O = n.getWord() + "and" + tmp.getDependent(n.getWord(), "conj:and").getWord() + " " + O;
+								else
+									O = n.getWord() +" " + O;
+							}
+						}
+						else O = null;
+						triples.add(new Triple(S, P, O));
+					}
 				}
-				else S = null;
-				//O:
-				if(tmp.getDependent(P_token.getWord(), "nsubjpass") != null)
-					O_token = tmp.getDependent(P_token.getWord(), "nsubjpass");
-				else if(tmp.getDependent(P_token.getWord(), "dobj") != null)
-					O_token = tmp.getDependent(P_token.getWord(), "dobj");
-				else
-					O_token = tmp.getDependent(tmp_dep_token.getWord(), "iobj");
-				String O;
-				if(O_token != null) {
-					O = O_token.getLemma();
-					if(tmp.getDependent(O_token.getWord(), "nmod") != null)
-						O = tmp.getDependent(O_token.getWord(), "nmod").getLemma() +" "+ O;
-					if(tmp.getDependent(P_token.getWord(), "nummod") != null)
-						O = tmp.getDependent(P_token.getWord(), "nummod").getLemma() +" "+ O;
-				}
-				else O = null;
-				triples.add(new Triple(S, P, O));
-			}
-				
+			}	
 		}
 		return triples;
 	}

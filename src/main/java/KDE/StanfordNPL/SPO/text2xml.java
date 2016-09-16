@@ -19,7 +19,7 @@ public class text2xml {
 			String sCurrentLine;
 			br = new BufferedReader(new FileReader(path));
 			while ((sCurrentLine = br.readLine()) != null) {
-				document += sCurrentLine;
+				document += " " + sCurrentLine;
 				//System.out.println(sCurrentLine);
 			}
 
@@ -48,7 +48,7 @@ public class text2xml {
 	}
 	public static void main(String[] args) throws IOException{
 		Properties props = new Properties();
-		props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
+		props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 		//System.out.println(readFile("/home/jeovach/java workspace/StanfordNPL.SPO/data/business_2016_sep_06_eurozone-consumer-spending-slows-but-exports-rise"));
 		String path = "/home/jeovach/java workspace/StanfordNPL.SPO/data";
@@ -59,12 +59,7 @@ public class text2xml {
 			FileOutputStream os = new FileOutputStream(new File("/home/jeovach/java workspace/StanfordNPL.SPO/xml", paths[i]+".xml"));
 			pipeline.xmlPrint(annotation, os);
 			os.close();
-			/*List<CoreLabel> Sentences = annotation.get(CoreAnnotations.TokensAnnotation.class);
-			//for(CoreLabel Sentence : Sentences){
-				SemanticGraph DepenTree = Sentence.get(CollapsedCCProcessedDependenciesAnnotation.class);
-				System.out.println(DepenTree.toString(SemanticGraph.OutputFormat.XML));
-			//}
-*/		}
+			}
 		
 	}
 }

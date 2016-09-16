@@ -23,4 +23,28 @@ public class Dependence {
 	public void setDepList(List<Dep> depList) {
 		this.depList = depList;
 	}
+	public boolean isInDep(Token x, String type, int i){
+		if(i == 0){
+			for(Dep t: this.depList){
+				if(t.getType().startsWith(type) && (t.getIDword1() == x.getId() || t.getIDword2() == x.getId()))
+					return true;
+			}
+			return false;
+		}
+		else if (i == 1){
+				for(Dep t: this.depList){
+					if(t.getType().startsWith(type) && t.getIDword1() == x.getId())
+						return true;
+				}
+				return false;
+		}
+		else {
+			for(Dep t: this.depList){
+				if(t.getType().startsWith(type) && t.getIDword2() == x.getId())
+					return true;
+			}
+			return false;
+
+		}
+	}
 }
