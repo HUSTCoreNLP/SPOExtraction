@@ -13,78 +13,132 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class ReadFileXML {
-	public static List<Sentence> readFile (String paths) throws ParserConfigurationException, SAXException, IOException{
+	public static DocumentNLP readFile (String paths) throws ParserConfigurationException, SAXException, IOException{
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		//factory.setValidating(true);
+		// factory.setValidating(true);
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		Document xmlDoc = builder.parse(
-				new File(paths));
-		
+		Document xmlDoc = builder.parse(new File(paths));
 		List<Sentence> sentences = new ArrayList<>();
-		NodeList nodes = xmlDoc.getElementsByTagName("sentence");
+		xmlDoc.getDocumentElement().normalize();
+
+		NodeList nodess = xmlDoc.getElementsByTagName("sentences");
+		Element nodesss = (Element) nodess.item(0);
+		NodeList nodes = nodesss.getChildNodes();
+
+		NodeList docs = xmlDoc.getElementsByTagName("document");
+		NodeList cofdoc = docs.item(0).getChildNodes();
+		NodeList cofs = cofdoc.item(3).getChildNodes();
+
+		List<CoreFerence> conferences = new ArrayList<>();
+		
+		
 		for (int i = 0; i < nodes.getLength(); i++) {
-			//xu li tung cau:
-			Element elem = (Element)nodes.item(i);
-			Sentence sentence = new Sentence();
-			sentence.setId(Integer.parseInt(elem.getAttributes().getNamedItem("id").getNodeValue()));
-			
-			//lay tagname dependencies
-			List<Token> tmp_tok = new ArrayList<Token>();
-			NodeList tokens = elem.getElementsByTagName("token");
-			for(int j = 0; j < tokens.getLength(); j++){
-				Element token = (Element) tokens.item(j);
-				int id = Integer.parseInt(token.getAttributes().getNamedItem("id").getNodeValue());
-				String word = token.getElementsByTagName("word").item(0).getTextContent();
-				String lemma = token.getElementsByTagName("lemma").item(0).getTextContent();
-				//int CharacterOffsetBegin = token.getElementsByTagName("word").item(0).;
-				//int CharacterOffsetEnd = Integer.parseInt(token.getAttributes().getNamedItem("CharacterOffsetEnd").getNodeValue());
-				String pos = token.getElementsByTagName("POS").item(0).getTextContent();
-				String ner = token.getElementsByTagName("NER").item(0).getTextContent();
-				Token loop_token = new Token(pos, ner, word, lemma, 0, 0, id);
-				tmp_tok.add(loop_token);
-			}
-			sentence.setTokens(tmp_tok);
-			sentence.setPairs(elem.getElementsByTagName("parse").item(0).getTextContent());
-			
-			NodeList dependencies = elem.getElementsByTagName("dependencies");
-			List<Dep> list_dep = new ArrayList<>();
-			for (int j = 0; j < dependencies.getLength(); j++) {
-				//lay ra dependence thu j
-				Element dependence = (Element) dependencies.item(j);
-				//lay ra cac dep cua dependence
-				//System.out.println(dependence.getAttribute("type"));
-				if(!dependence.getAttribute("type").equals("basic-dependencies")) continue;
-				NodeList deps = dependence.getElementsByTagName("dep");
-				//System.out.println(deps.getLength());
-				for (int k = 0; k < deps.getLength(); k++) {
-					
-					//lay ra dep thu k
-					Element dep = (Element) deps.item(k);
-					//xu li dep thu k
-					String type = dep.getAttribute("type");
-					int id1,id2;
-					NodeList governor = dep.getElementsByTagName("governor");
-					id1 = Integer.parseInt(((Element)governor.item(0)).getAttributes().getNamedItem("idx").getNodeValue());
-					NodeList dependent = dep.getElementsByTagName("dependent");
-					id2 = Integer.parseInt(((Element)dependent.item(0)).getAttributes().getNamedItem("idx").getNodeValue());
-								
-					Dep loop_dep = new Dep(type, id1, id2);
-					//System.out.println(loop_dep.getType());
-					list_dep.add(loop_dep);
+			if (nodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+				// xu li tung cau:
+				Element elem = (Element) nodes.item(i);
+				Sentence sentence = new Sentence();
+				sentence.setId(Integer.parseInt(elem.getAttributes().getNamedItem("id").getNodeValue()));
+
+				// lay tagname dependencies
+				List<Token> tmp_tok = new ArrayList<Token>();
+				NodeList tokens = elem.getElementsByTagName("token");
+				for (int j = 0; j < tokens.getLength(); j++) {
+					Element token = (Element) tokens.item(j);
+					int id = Integer.parseInt(token.getAttributes().getNamedItem("id").getNodeValue());
+					String word = token.getElementsByTagName("word").item(0).getTextContent();
+					String lemma = token.getElementsByTagName("lemma").item(0).getTextContent();
+					// int CharacterOffsetBegin =
+					// token.getElementsByTagName("word").item(0).;
+					// int CharacterOffsetEnd =
+					// Integer.parseInt(token.getAttributes().getNamedItem("CharacterOffsetEnd").getNodeValue());
+					String pos = token.getElementsByTagName("POS").item(0).getTextContent();
+					String ner = token.getElementsByTagName("NER").item(0).getTextContent();
+					Token loop_token = new Token(pos, ner, word, lemma, 0, 0, id);
+					tmp_tok.add(loop_token);
 				}
-				Dependence basic = new Dependence("basic-dependencies");
-				basic.setDepList(list_dep);
-				sentence.setBasic_dep(basic);
+				sentence.setTokens(tmp_tok);
+				sentence.setPairs(elem.getElementsByTagName("parse").item(0).getTextContent());
+
+				NodeList dependencies = elem.getElementsByTagName("dependencies");
+				List<Dep> list_dep = new ArrayList<>();
+				for (int j = 0; j < dependencies.getLength(); j++) {
+					// lay ra dependence thu j
+					Element dependence = (Element) dependencies.item(j);
+					// lay ra cac dep cua dependence
+					// System.out.println(dependence.getAttribute("type"));
+					if (!dependence.getAttribute("type").equals("basic-dependencies"))
+						continue;
+					NodeList deps = dependence.getElementsByTagName("dep");
+					// System.out.println(deps.getLength());
+					for (int k = 0; k < deps.getLength(); k++) {
+
+						// lay ra dep thu k
+						Element dep = (Element) deps.item(k);
+						// xu li dep thu k
+						String type = dep.getAttribute("type");
+						int id1, id2;
+						NodeList governor = dep.getElementsByTagName("governor");
+						id1 = Integer.parseInt(
+								((Element) governor.item(0)).getAttributes().getNamedItem("idx").getNodeValue());
+						NodeList dependent = dep.getElementsByTagName("dependent");
+						id2 = Integer.parseInt(
+								((Element) dependent.item(0)).getAttributes().getNamedItem("idx").getNodeValue());
+
+						Dep loop_dep = new Dep(type, id1, id2);
+						// System.out.println(loop_dep.getType());
+						list_dep.add(loop_dep);
+					}
+					Dependence basic = new Dependence("basic-dependencies");
+					basic.setDepList(list_dep);
+					sentence.setBasic_dep(basic);
+				}
+				sentences.add(sentence);
 			}
-			sentences.add(sentence);
+
 		}
-		return sentences;
+		
+		for (int i = 0; i < cofs.getLength(); i++) {
+			CoreFerence conference;
+			if (cofs.item(i).getNodeType() == Node.ELEMENT_NODE) {
+				Element cof = (Element)cofs.item(i); //lay ra cof thu i
+				//lay danh sach cac mention
+				NodeList mentions = cof.getElementsByTagName("mention");
+				ArrayList<Mention> mentionList = new ArrayList<>();
+				boolean reprent;
+				int sentence, start, end, head;
+				String text;
+				//xu li tung mention
+				Element mention;
+				for (int j = 0; j < mentions.getLength(); j++) {
+					mention = (Element) mentions.item(j);
+					reprent = Boolean.parseBoolean(mention.getAttribute("representative"));
+					NodeList sentence1 = mention.getElementsByTagName("sentence") ;
+					sentence = Integer.parseInt(((Element) sentence1.item(0)).getTextContent());
+					NodeList start1 = mention.getElementsByTagName("start");
+					start = Integer.parseInt(((Element)start1.item(0)).getTextContent());
+					NodeList end1 = mention.getElementsByTagName("end");
+					end = Integer.parseInt(((Element)end1.item(0)).getTextContent());
+					NodeList head1 = mention.getElementsByTagName("head");
+					head = Integer.parseInt(((Element)head1.item(0)).getTextContent());
+					
+					NodeList text1 = mention.getElementsByTagName("text");
+					text = ((Element)text1.item(0)).getTextContent();
+					mentionList.add(new Mention(sentence, start, head, end, text, reprent));
+				}
+				conference = new CoreFerence(mentionList);
+			conferences.add(conference);	
+			}
+		}
+		CoreFerences cof = new CoreFerences(conferences);
+		DocumentNLP doc = new DocumentNLP(sentences, cof);
+		return doc;
 	}
-	public static List<Triple> getTripleList(List<Sentence> document){
+	public static List<Triple> getTripleList(List<Sentence> document, CoreFerences CoreList){
 		List<Triple> triples = new ArrayList<>();
 		for(Sentence tmp: document){
 			Token tmp_dep_token = tmp.getDependent("ROOT", "root");
@@ -110,8 +164,12 @@ public class ReadFileXML {
 							S_token = tmp.getDependent(P_token.getWord(), "nmod:agent");
 						else
 							S_token = tmp.getDependent(tmp_dep_token.getWord(), "nsubj");
-						String S;
-						if(S_token != null) {
+						String S = null;
+						if(S_token != null){
+							S = CoreList.getCoref(S_token, tmp.getId());
+						}
+						
+						if(S == null && S_token != null) {
 							S = S_token.getWord();
 							if(tmp.getDependent(S_token.getWord(), "nmod") != null)
 								S = tmp.getDependent(S_token.getWord(), "nmod").getWord() +" "+ S;
@@ -160,14 +218,14 @@ public class ReadFileXML {
     		File file2 = new File("/home/jeovach/java workspace/StanfordNPL.SPO/triple" + "/" + paths[i] + ".triple");      
     		FileWriter fw = new FileWriter(file2.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
-            List<Sentence> document = readFile(path + "/" + paths[i]);
+            DocumentNLP document = readFile(path + "/" + paths[i]);
  //           for(Sentence s:document){
 //            	for(Dep k : s.getBasic_dep().getDepList()){
 //            		if(k.getType().startsWith("root"))
 //            		System.out.println(k.getType());
 //            	}
 //            }
-            List<Triple> triples = getTripleList(document);
+        	List<Triple> triples = getTripleList(document.getList_sen(), document.getList_Cof());
             for(Triple t:triples){
             	bw.write("["+t.getS()+";"+t.getP()+";"+t.getO()+"]" + "\n");
             }

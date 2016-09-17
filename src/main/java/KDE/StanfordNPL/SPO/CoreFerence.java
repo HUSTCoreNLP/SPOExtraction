@@ -20,7 +20,7 @@ public class CoreFerence {
 	
 	public String getMainText(){
 		for(Mention tmp: men_list){
-			if(tmp.representative == true){
+			if(tmp.isRepresentative()){
 				return tmp.getText();
 			}
 		}

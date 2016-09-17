@@ -13,6 +13,12 @@ public class Mention {
 		this.text = text;
 		this.representative = representative;
 	}
+	public boolean isRepresentative() {
+		return representative;
+	}
+	public void setRepresentative(boolean representative) {
+		this.representative = representative;
+	}
 	public String getText() {
 		return text;
 	}
@@ -20,13 +26,13 @@ public class Mention {
 		return SenId;
 	}
 	public void setSenId(int senId) {
-		SenId = senId;
+		this.SenId = senId;
 	}
 	public int getStartId() {
 		return StartId;
 	}
 	public void setStartId(int startId) {
-		StartId = startId;
+		this.StartId = startId;
 	}
 	public int getHeadId() {
 		return HeadId;
